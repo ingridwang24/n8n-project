@@ -1,0 +1,145 @@
+{
+  "name": "Email Reply Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        0
+      ],
+      "id": "b1c6db4a-d327-4f1e-94c5-1c7b79656995",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jGUvJcjqBa0AnIUR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a reply to the following email, then add it as a draft to the email thread:\n<email>\nFrom: {{ $json.From }}\nTo: {{ $json.To }}\nMessage: {{ $json.snippet }}\n</email>",
+        "options": {
+          "systemMessage": "#role \nYou are an AI assistant specializing in replying to incoming emails to Ingrid's Gmail email box\n\n#capabilities and limitation\nYou cannot send emails, you can create email drafts. Do not hallucinate \n\n#response\nReply in a casual, modern, professional, concise writing styel. Write email drafts in plaintext, not HTML format. YOu should sound like Ingrid. Here are exmaples of Ingrid's Voice\n\n<example>\n\nHey Frankie,\n\nThanks for the amazing offer \n\nHey Alex,\n\nThanks for the amazing offer—I’d love to run with it! This could be our first content collab: “With his work on Streamify, Alex is teaming up with me to co-create a VAPI-to-n8n AI Agent starter template.” I’ll handle the template building and all the groundwork. From your side, I’d just need a bit of time for a call. When the template goes live, we’d brand it as a n8n x Streamify collaboration.\n\nIn the template description and workflow canvas, I’d be happy to include a shoutout to Streamify, maybe with messaging like: “Need a human-in-the-loop solution? Check out Streamify’s n8n integration” (placeholder, something along those lines). This way, it positions you as the expert and gives some exposure to Streamify. What do you think?\n\nAlso, I caught up with the AI team today—there’s a roadmap for enabling execution pauses mid-AI Agent steps. The first iteration will likely be limited to a few app tools (e.g., the Slack tool’s “Wait for approval”), but broader support will follow. Since backend changes are part of this, I’m guessing you’d be unblocked to develop your own Streamify custom tool shortly after the Slack updates go live. I’ll keep you posted as soon as I get an ETA on that!\n\nCheers,\nIngrid\n</example>\n\n<example>\nHey Elyse,\n\nFan of what you’re doing but I would say next 3 months I shan’t have the bandwidth for such a partnership. But for future context, do you have any low-code initiatives?\n\nThanks!\nIngrid\n</example>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        0
+      ],
+      "id": "2146c7b0-d31b-4ce6-8ff4-faaf20d2fbda",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        176
+      ],
+      "id": "de0cf371-5f53-433f-8843-ed4d2aaea6ba",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "o0TRso9va4YMwWdJ",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "threadId": "={{ $json.threadId }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        208
+      ],
+      "id": "f3661158-765a-4689-b6c0-80481c3172c4",
+      "name": "Create a draft in Gmail",
+      "webhookId": "d99e7d6c-056d-46d9-ba3a-b88b0648e6ad",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jGUvJcjqBa0AnIUR",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "38610b9d-647d-4ca1-88f8-3f60df03ce7f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f208c979cc94ba56aa978cb2f37cce17f1ece354430690f2f9b98682ad9a5730"
+  },
+  "id": "bWgqxOl8TqdrvGwC",
+  "tags": []
+}
